@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 def fmt(num):
     return f"{num:,}"
 
@@ -100,3 +101,31 @@ def build_embed(results):
     }
 
     return embed
+
+
+def has_activity(data):
+
+    skills = data["data"]["skills"]
+    bosses = data["data"]["bosses"]
+    activities = data["data"]["activities"]
+
+    # Total XP gained
+    if skills["overall"]["experience"]["gained"] > 0:
+        return True
+
+    # Any level up
+    for skill in skills.values():
+        if skill["level"]["end"] > skill["level"]["start"]:
+            return True
+
+    # Any boss KC gained
+    for boss in bosses.values():
+        if boss["kills"]["gained"] > 0:
+            return True
+
+    # Any activity score gained
+    for activity in activities.values():
+        if activity["score"]["gained"] > 0:
+            return True
+
+    return False
