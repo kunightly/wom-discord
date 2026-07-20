@@ -8,13 +8,16 @@ cd "$PROJECT_DIR"
 
 echo "===== $(date) ====="
 
-echo "[1/4] Pulling latest code..."
+echo "[1/5] Pulling latest code..."
 git pull origin main
 
-echo "[2/4] Activating virtual environment..."
+echo "[2/5] Activating virtual environment..."
 source venv/bin/activate
 
-echo "[3/4] Running Wise Old Man notifier..."
+echo "[3/5] Installing/updating dependencies..."
+pip install -r requirements.txt
+
+echo "[4/5] Running Wise Old Man notifier..."
 python3 main.py
 
-echo "[4/4] Finished."
+echo "[5/5] Finished."
