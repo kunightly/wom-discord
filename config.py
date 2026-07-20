@@ -9,7 +9,7 @@ DISCORD_WEBHOOK = os.getenv("DISCORD_WEBHOOK")
 
 USER_AGENT = os.getenv(
     "WOM_USER_AGENT",
-    "Knightly-WOM-Discord/1.0"
+    "Knightly-WOM-Notify/1.0"
 )
 
 BASE_URL = "https://api.wiseoldman.net/v2"
