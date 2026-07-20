@@ -18,6 +18,6 @@ echo "[3/5] Installing/updating dependencies..."
 pip install -r requirements.txt
 
 echo "[4/5] Running Wise Old Man notifier..."
-python3 main.py
+python main.py
 
 echo "[5/5] Finished."
