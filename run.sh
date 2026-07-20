@@ -2,7 +2,7 @@
 
 set -e
 
-PROJECT_DIR="/root/wom-discord"
+PROJECT_DIR="/root/wom-notify"
 
 cd "$PROJECT_DIR"
 
