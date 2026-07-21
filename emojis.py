@@ -52,3 +52,8 @@ def skill_emoji(name):
 def boss_emoji(name):
     """Returns the emoji tag for a boss, or empty string if we don't have one."""
     return BOSS_EMOJIS.get(name, "")
+
+
+def misc_emoji(name):
+    """Returns the emoji tag for a misc item (clue scroll, collection log), or empty string."""
+    return MISC_EMOJIS.get(name, "")
