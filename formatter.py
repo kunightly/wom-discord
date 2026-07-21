@@ -2,9 +2,34 @@ from datetime import datetime
 
 from emojis import skill_emoji, boss_emoji
 
+COMBAT_SKILLS = ["prayer", "attack", "strength", "defence", "hitpoints", "ranged", "magic"]
+
 
 def fmt(num):
     return f"{num:,}"
+
+
+def fmt_xp(num):
+    """Compact XP formatting: 50101 -> '50.1k', 2_400_000 -> '2.4m', 320 -> '320'."""
+
+    if num >= 1_000_000:
+        return f"{num / 1_000_000:.1f}m"
+
+    if num >= 1000:
+        return f"{num / 1000:.1f}k"
+
+    return str(num)
+
+
+def format_skill_line(name, xp, start, end):
+
+    emoji = skill_emoji(name)
+    xp_str = fmt_xp(xp)
+
+    if end > start:
+        return f"• {emoji} {name.title()} {start} → {end} +{xp_str}"
+
+    return f"• {emoji} {name.title()} +{xp_str}"
 
 
 def build_embed(results):
@@ -26,28 +51,10 @@ def build_embed(results):
             daily_winner = player
 
         description += f"## ⚔ {player.title()}\n\n"
-        description += f"**Total XP:** +{fmt(total_xp)}\n\n"
+        description += f"**{skill_emoji('overall')} Total EXP:** +{fmt_xp(total_xp)}\n\n"
 
-        levelups = []
-
-        for name, skill in skills.items():
-
-            if name == "overall":
-                continue
-
-            start = skill["level"]["start"]
-            end = skill["level"]["end"]
-
-            if end > start:
-                emoji = skill_emoji(name)
-                levelups.append(f"• {emoji} {name.title()} {start} → {end}")
-
-        if levelups:
-            description += "**⭐ Level Ups**\n"
-            description += "\n".join(levelups)
-            description += "\n\n"
-
-        gained_skills = []
+        # Collect every skill with xp gained this period, keyed by name
+        skill_entries = {}
 
         for name, skill in skills.items():
 
@@ -57,17 +64,44 @@ def build_embed(results):
             xp = skill["experience"]["gained"]
 
             if xp > 0:
-                gained_skills.append((xp, name))
+                skill_entries[name] = {
+                    "xp": xp,
+                    "start": skill["level"]["start"],
+                    "end": skill["level"]["end"]
+                }
 
-        gained_skills.sort(reverse=True)
+        # Pull out combat skills first, in the fixed order
+        combat_lines = []
 
-        if gained_skills:
+        for name in COMBAT_SKILLS:
+            if name in skill_entries:
+                entry = skill_entries.pop(name)
+                combat_lines.append(format_skill_line(name, entry["xp"], entry["start"], entry["end"]))
 
-            description += "**📈 Skill Gains**\n"
+        # Remaining skills, sorted by xp gained (highest first), capped at 8
+        other_entries = sorted(
+            skill_entries.items(),
+            key=lambda item: item[1]["xp"],
+            reverse=True
+        )[:8]
 
-            for xp, skill in gained_skills[:8]:
-                emoji = skill_emoji(skill)
-                description += f"• {emoji} {skill.title():15} +{fmt(xp)} XP\n"
+        other_lines = [
+            format_skill_line(name, entry["xp"], entry["start"], entry["end"])
+            for name, entry in other_entries
+        ]
+
+        if combat_lines or other_lines:
+
+            description += "**Experience Gains**\n"
+
+            if combat_lines:
+                description += "\n".join(combat_lines) + "\n"
+
+            if combat_lines and other_lines:
+                description += "\n"
+
+            if other_lines:
+                description += "\n".join(other_lines) + "\n"
 
             description += "\n"
 
@@ -84,12 +118,12 @@ def build_embed(results):
 
         if bosses_gained:
 
-            description += "**👹 Boss KC**\n"
+            description += f"**Slain Bosses**\n"
 
             for kc, boss in bosses_gained:
                 emoji = boss_emoji(boss)
                 boss_name = boss.replace("_", " ").title()
-                description += f"• {emoji} {boss_name:30} +{kc}\n"
+                description += f"  {emoji} {boss_name} {kc}\n"
 
             description += "\n"
 
