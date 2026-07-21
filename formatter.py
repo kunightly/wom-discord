@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from emojis import skill_emoji, boss_emoji
+
 
 def fmt(num):
     return f"{num:,}"
@@ -37,7 +39,8 @@ def build_embed(results):
             end = skill["level"]["end"]
 
             if end > start:
-                levelups.append(f"• {name.title()} {start} → {end}")
+                emoji = skill_emoji(name)
+                levelups.append(f"• {emoji} {name.title()} {start} → {end}")
 
         if levelups:
             description += "**⭐ Level Ups**\n"
@@ -63,7 +66,8 @@ def build_embed(results):
             description += "**📈 Skill Gains**\n"
 
             for xp, skill in gained_skills[:8]:
-                description += f"• {skill.title():15} +{fmt(xp)} XP\n"
+                emoji = skill_emoji(skill)
+                description += f"• {emoji} {skill.title():15} +{fmt(xp)} XP\n"
 
             description += "\n"
 
@@ -83,8 +87,9 @@ def build_embed(results):
             description += "**👹 Boss KC**\n"
 
             for kc, boss in bosses_gained:
-                boss = boss.replace("_", " ").title()
-                description += f"• {boss:30} +{kc}\n"
+                emoji = boss_emoji(boss)
+                boss_name = boss.replace("_", " ").title()
+                description += f"• {emoji} {boss_name:30} +{kc}\n"
 
             description += "\n"
 
