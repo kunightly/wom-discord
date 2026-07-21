@@ -17,7 +17,10 @@ def main():
 
         print(f"Fetching gains for {player}")
 
-        results[player] = get_daily_gains(player)
+        try:
+            results[player] = get_daily_gains(player)
+        except Exception as e:
+            print(f"Failed to fetch gains for {player}: {e}")
 
     active_players = [
         player for player, data in results.items()

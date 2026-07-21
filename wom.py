@@ -14,40 +14,58 @@ HEADERS = {
 }
 
 
+def request_with_retry(method, url, **kwargs):
+
+    while True:
+
+        response = requests.request(method, url, **kwargs)
+
+        if response.status_code != 429:
+            response.raise_for_status()
+            return response
+
+        retry_after = response.headers.get("Retry-After")
+
+        try:
+            wait = int(retry_after)
+        except (TypeError, ValueError):
+            wait = 30 * 60  # 30 minutes
+
+        print(f"Rate limited (429). Waiting {wait} seconds before retrying...")
+        time.sleep(wait)
+
+
 def update_player(username):
 
     print(f"Updating {username}...")
 
-    response = requests.post(
+    response = request_with_retry(
+        "POST",
         f"{BASE_URL}/players/{username}",
         headers=HEADERS
     )
-
-    response.raise_for_status()
 
     return response.json()
 
 
 def get_player(username):
 
-    response = requests.get(
+    response = request_with_retry(
+        "GET",
         f"{BASE_URL}/players/{username}",
         headers=HEADERS
     )
-
-    response.raise_for_status()
 
     return response.json()
 
 
 def get_daily_gains(username):
 
-    response = requests.get(
+    response = request_with_retry(
+        "GET",
         f"{BASE_URL}/players/{username}/gained?period=day",
         headers=HEADERS
     )
-
-    response.raise_for_status()
 
     return response.json()
 
@@ -55,7 +73,10 @@ def get_daily_gains(username):
 def update_all(players):
 
     for player in players:
-        update_player(player)
+        try:
+            update_player(player)
+        except Exception as e:
+            print(f"Failed to update {player}: {e}")
 
     print(f"Waiting {UPDATE_WAIT} seconds...")
 
