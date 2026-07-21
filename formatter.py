@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from emojis import skill_emoji, boss_emoji
+from emojis import skill_emoji, boss_emoji, misc_emoji
 
 COMBAT_SKILLS = ["prayer", "attack", "strength", "defence", "hitpoints", "ranged", "magic"]
 
@@ -27,9 +27,9 @@ def format_skill_line(name, xp, start, end):
     xp_str = fmt_xp(xp)
 
     if end > start:
-        return f"• {emoji} {name.title()} {start} → {end} +{xp_str}"
+        return f"  {emoji} {name.title()} **{start} → {end}** +{xp_str}"
 
-    return f"• {emoji} {name.title()} +{xp_str}"
+    return f"  {emoji} {name.title()} +{xp_str}"
 
 
 def build_embed(results):
@@ -41,8 +41,16 @@ def build_embed(results):
 
     for player, data in results.items():
 
+        # Players with no activity get a short, simple line instead of the full breakdown
+        if not has_activity(data):
+            description += f"## ⚔ {player.title()}\n\n"
+            description += "**NO ACTIVITY** ❌\n\n"
+            description += "──────────────────────\n\n"
+            continue
+
         skills = data["data"]["skills"]
         bosses = data["data"]["bosses"]
+        activities = data["data"]["activities"]
 
         total_xp = skills["overall"]["experience"]["gained"]
 
@@ -118,14 +126,24 @@ def build_embed(results):
 
         if bosses_gained:
 
-            description += f"**Slain Bosses**\n"
+            description += "**Slain Bosses**\n"
 
             for kc, boss in bosses_gained:
                 emoji = boss_emoji(boss)
                 boss_name = boss.replace("_", " ").title()
-                description += f"  {emoji} {boss_name} {kc}\n"
+                description += f"  {emoji} {boss_name}: {kc}\n"
 
             description += "\n"
+
+        # Clue scrolls, only shown if the player completed at least one
+        clue_data = activities.get("clue_scrolls_all")
+
+        if clue_data:
+
+            clue_count = clue_data["score"]["gained"]
+
+            if clue_count > 0:
+                description += f"**{misc_emoji('clue_scroll')} Clue Scrolls:** {clue_count}\n\n"
 
         description += "──────────────────────\n\n"
 
